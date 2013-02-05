@@ -85,8 +85,43 @@ namespace qfinlib
 	}
 
 	double
+	VanillaOption::getD1() const {
+		return computeD1();
+	}
+
+	double
+	VanillaOption::getD2() const {
+		return computeD2();
+	}
+
+	double
+	VanillaOption::getDelta() const {
+		return computeDelta();
+	}
+
+	double
+	VanillaOption::getGamma() const {
+		return computeGamma();
+	}
+
+	double
+	VanillaOption::getRho() const {
+		return computeRho();
+	}
+
+	double
+	VanillaOption::getTheta() const {
+		return computeTheta();
+	}
+
+	double
 	VanillaOption::getValue() const {
 		return computeValue();
+	}
+
+	double
+	VanillaOption::getVega() const {
+		return computeVega();
 	}
 
 	void
@@ -120,6 +155,54 @@ namespace qfinlib
 	}
 
 	double
+	VanillaOption::computeDelta() const {
+		double delta = NormalDistribution::cdf(optionType_ * computeD1());
+		delta *= exp((costOfCarry_ - interestRate_) * timeUntilExpiration_);
+		delta *= optionType_;
+		return delta;
+	}
+
+	double
+	VanillaOption::computeGamma() const {
+		double gamma = NormalDistribution::pdf(computeD1());
+		gamma *= exp((costOfCarry_ - interestRate_) * timeUntilExpiration_);
+		gamma /= (underlyingPrice_ * volatility_ * sqrt(timeUntilExpiration_));
+		return gamma;
+	}
+
+	double
+	VanillaOption::computeRho() const {
+		double rho = timeUntilExpiration_;
+		if(costOfCarry_ == 0.0) {
+			rho *= -computeValue();
+		} else {
+			rho *= NormalDistribution::cdf(optionType_ * computeD2());
+			rho *= exp(-interestRate_ * timeUntilExpiration_);
+			rho *= (optionType_ * strikePrice_);
+		}
+		return rho;
+	}
+
+	double
+	VanillaOption::computeTheta() const {
+		double piece1 = NormalDistribution::pdf(computeD1());
+		piece1 *= exp((costOfCarry_ - interestRate_) * timeUntilExpiration_);
+		piece1 *= (-0.5 * (underlyingPrice_ * volatility_));
+		piece1 /= sqrt(timeUntilExpiration_);
+
+		double piece2 = NormalDistribution::cdf(optionType_ * computeD1());
+		piece2 *= exp((costOfCarry_ - interestRate_) * timeUntilExpiration_);
+		piece2 *= (costOfCarry_ - interestRate_);
+		piece2 *= (-optionType_ * underlyingPrice_);
+
+		double piece3 = NormalDistribution::cdf(optionType_ * computeD2());
+		piece3 *= exp(-interestRate_ * timeUntilExpiration_);
+		piece3 *= (-optionType_ * interestRate_ * strikePrice_);
+
+		return (piece1 + piece2 + piece3);
+	}
+
+	double
 	VanillaOption::computeValue() const {
 		double piece1 = NormalDistribution::cdf(optionType_ * computeD1());
 		piece1 *= exp((costOfCarry_ - interestRate_) * timeUntilExpiration_);
@@ -130,5 +213,13 @@ namespace qfinlib
 		piece2 *= (-optionType_ * strikePrice_);
 
 		return (piece1 + piece2);
+	}
+
+	double
+	VanillaOption::computeVega() const {
+		double vega = NormalDistribution::pdf(computeD1());
+		vega *= exp((costOfCarry_ - interestRate_) * timeUntilExpiration_);
+		vega *= (underlyingPrice_ * sqrt(timeUntilExpiration_));
+		return vega;
 	}
 }

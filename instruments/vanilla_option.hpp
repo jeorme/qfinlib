@@ -29,14 +29,26 @@ namespace qfinlib
 
 		void setOptionType(const OptionType optionType);
 
+		double getD1() const;
+		double getD2() const;
+		double getDelta() const;
+		double getGamma() const;
+		double getRho() const;
+		double getTheta() const;
 		double getValue() const;
+		double getVega() const;
 
 		void reset();
 
 	private:
-		double computeD1() const;
-		double computeD2() const;
-		double computeValue() const;
+		virtual double computeD1() const;
+		virtual double computeD2() const;
+		virtual double computeDelta() const;
+		virtual double computeGamma() const;
+		virtual double computeRho() const;
+		virtual double computeTheta() const;
+		virtual double computeValue() const;
+		virtual double computeVega() const;
 
 		double costOfCarry_;
 		double interestRate_;
